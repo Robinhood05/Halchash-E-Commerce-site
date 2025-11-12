@@ -1,0 +1,23 @@
+# Configuration
+config/database.local.php
+
+# Uploads
+uploads/products/*
+!uploads/products/.htaccess
+!uploads/products/.gitkeep
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.md

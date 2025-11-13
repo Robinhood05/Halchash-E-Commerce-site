@@ -95,6 +95,45 @@ switch ($method) {
         sendJSONResponse(['success' => true, 'message' => 'Order status updated']);
         break;
 
+    case 'DELETE':
+        $data = json_decode(file_get_contents('php://input'), true);
+        $id = intval($data['id'] ?? 0);
+
+        if ($id <= 0) {
+            sendJSONResponse(['success' => false, 'error' => 'Invalid order ID'], 400);
+        }
+
+        try {
+            $pdo->beginTransaction();
+
+            // Delete order items first (due to foreign key constraint)
+            $stmt = $pdo->prepare('DELETE FROM order_items WHERE order_id = ?');
+            $stmt->execute([$id]);
+
+            // Delete reviews associated with this order
+            $stmt = $pdo->prepare('DELETE FROM reviews WHERE order_id = ?');
+            $stmt->execute([$id]);
+
+            // Delete the order
+            $stmt = $pdo->prepare('DELETE FROM orders WHERE id = ?');
+            $stmt->execute([$id]);
+
+            if ($stmt->rowCount() === 0) {
+                $pdo->rollBack();
+                sendJSONResponse(['success' => false, 'error' => 'Order not found'], 404);
+            }
+
+            $pdo->commit();
+            sendJSONResponse(['success' => true, 'message' => 'Order deleted permanently']);
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('Delete order error: ' . $e->getMessage());
+            sendJSONResponse(['success' => false, 'error' => 'Failed to delete order: ' . $e->getMessage()], 500);
+        }
+        break;
+
     default:
         sendJSONResponse(['success' => false, 'error' => 'Method not allowed'], 405);
 }

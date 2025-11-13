@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, X, Heart, Home, Truck, Star, ShoppingBag } from 'lucide-react';
+import { Search, ShoppingCart, User, Menu, X, Heart, Home } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -32,37 +32,8 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
-  const features = [
-    { icon: Truck, text: "Free Delivery", subtext: "On orders over ৳500" },
-    { icon: Star, text: "Authentic Products", subtext: "100% Genuine Bengali Items" },
-    { icon: ShoppingBag, text: "Easy Returns", subtext: "7-day return policy" }
-  ];
-
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
-      {/* Top Bar with Features */}
-      <div className="bg-emerald-600 text-white py-2 px-4">
-        <div className="container mx-auto">
-          {/* Features */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="flex items-center space-x-2 text-center md:text-left justify-center md:justify-start"
-              >
-                <div className="bg-white/20 p-1.5 rounded flex-shrink-0">
-                  <feature.icon className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white text-xs md:text-sm">{feature.text}</h3>
-                  <p className="text-xs text-white/90 hidden md:block">{feature.subtext}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Main Header */}
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">

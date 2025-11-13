@@ -46,11 +46,22 @@ $categories = $stmt->fetchAll();
     <div class="flex h-screen">
         <?php include 'sidebar.php'; ?>
         
-        <div class="flex-1 overflow-auto">
-            <div class="p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-bold">Products</h2>
-                    <button onclick="openProductModal()" class="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700">
+        <div class="flex-1 overflow-auto lg:ml-0">
+            <!-- Mobile Top Bar -->
+            <div class="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+                <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h2 class="text-lg font-bold">Products</h2>
+                <button onclick="openProductModal()" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-700 text-sm">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+            
+            <div class="p-4 lg:p-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 lg:mb-6 gap-4">
+                    <h2 class="text-2xl lg:text-3xl font-bold hidden lg:block">Products</h2>
+                    <button onclick="openProductModal()" class="w-full sm:w-auto bg-emerald-600 text-white px-4 lg:px-6 py-2 rounded-lg hover:bg-emerald-700 text-sm lg:text-base">
                         <i class="fas fa-plus mr-2"></i> Add Product
                     </button>
                 </div>
@@ -61,7 +72,8 @@ $categories = $stmt->fetchAll();
                     </div>
                 <?php endif; ?>
 
-                <div class="bg-white rounded-lg shadow overflow-x-auto">
+                <!-- Desktop Table View -->
+                <div class="hidden lg:block bg-white rounded-lg shadow overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -120,19 +132,76 @@ $categories = $stmt->fetchAll();
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Mobile Card View -->
+                <div class="lg:hidden space-y-4">
+                    <?php foreach ($products as $product): ?>
+                        <div class="bg-white rounded-lg shadow p-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0">
+                                    <?php if ($product['image']): ?>
+                                        <img src="..<?php echo htmlspecialchars($product['image']); ?>" alt="" class="w-20 h-20 object-cover rounded">
+                                    <?php else: ?>
+                                        <div class="w-20 h-20 bg-gray-200 rounded"></div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <p class="text-xs text-gray-500">ID: <?php echo $product['id']; ?></p>
+                                            <h3 class="text-sm font-semibold text-gray-900 mt-1"><?php echo htmlspecialchars($product['name']); ?></h3>
+                                            <?php if ($product['badge']): ?>
+                                                <span class="text-xs text-gray-500"><?php echo htmlspecialchars($product['badge']); ?></span>
+                                            <?php endif; ?>
+                                            <p class="text-xs text-gray-600 mt-1"><?php echo htmlspecialchars($product['category_name']); ?></p>
+                                        </div>
+                                        <div class="flex space-x-2 ml-2">
+                                            <button onclick="editProduct(<?php echo htmlspecialchars(json_encode($product)); ?>)" class="text-blue-600 hover:text-blue-800">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <form method="POST" class="inline" onsubmit="return confirm('Are you sure?')">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="id" value="<?php echo $product['id']; ?>">
+                                                <button type="submit" class="text-red-600 hover:text-red-800">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 flex items-center justify-between">
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-900">৳<?php echo number_format($product['discount_price'] ?: $product['price'], 2); ?></p>
+                                            <?php if ($product['discount_price']): ?>
+                                                <p class="text-xs text-gray-500 line-through">৳<?php echo number_format($product['price'], 2); ?></p>
+                                            <?php endif; ?>
+                                        </div>
+                                        <span class="px-2 py-1 text-xs rounded <?php echo $product['in_stock'] ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
+                                            <?php echo $product['in_stock'] ? 'In Stock' : 'Out of Stock'; ?>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Product Modal -->
-    <div id="productModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
-        <div class="bg-white rounded-lg p-8 w-full max-w-2xl my-8">
-            <h3 class="text-2xl font-bold mb-4" id="modalTitle">Add Product</h3>
+    <div id="productModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto p-4">
+        <div class="bg-white rounded-lg p-4 lg:p-8 w-full max-w-2xl my-4 lg:my-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl lg:text-2xl font-bold" id="modalTitle">Add Product</h3>
+                <button onclick="closeProductModal()" class="lg:hidden text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
             <form id="productForm" method="POST" enctype="multipart/form-data" action="product_save.php">
                 <input type="hidden" name="action" id="formAction" value="create">
                 <input type="hidden" name="id" id="productId">
                 
-                <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-gray-700 text-sm font-bold mb-2">Category *</label>
                         <select name="category_id" id="category_id" required class="w-full px-3 py-2 border rounded">
@@ -154,12 +223,19 @@ $categories = $stmt->fetchAll();
                     <textarea name="description" id="description" class="w-full px-3 py-2 border rounded" rows="3"></textarea>
                 </div>
                 
-                <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2">Price (৳) *</label>
-                        <input type="number" step="0.01" name="price" id="price" required class="w-full px-3 py-2 border rounded">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Selling Price (৳) *</label>
+                        <input type="number" step="0.01" name="price" id="price" required class="w-full px-3 py-2 border rounded text-base">
                     </div>
                     
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Buying Price (৳) *</label>
+                        <input type="number" step="0.01" name="buying_price" id="buying_price" required class="w-full px-3 py-2 border rounded text-base" placeholder="0.00">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-gray-700 text-sm font-bold mb-2">Discount Price (৳)</label>
                         <input type="number" step="0.01" name="discount_price" id="discount_price" class="w-full px-3 py-2 border rounded">
@@ -243,6 +319,7 @@ $categories = $stmt->fetchAll();
             document.getElementById('name').value = product.name;
             document.getElementById('description').value = product.description || '';
             document.getElementById('price').value = product.price;
+            document.getElementById('buying_price').value = product.buying_price || 0;
             document.getElementById('discount_price').value = product.discount_price || '';
             document.getElementById('discount').value = product.discount || '';
             document.getElementById('stock_quantity').value = product.stock_quantity || 0;

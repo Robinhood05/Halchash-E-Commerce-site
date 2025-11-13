@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import OptimizedImage from '../common/OptimizedImage';
 import toast from 'react-hot-toast';
 import { API_BASE_URL } from '../../config/api';
 
@@ -165,10 +166,13 @@ const QuickViewModal = ({ product, isOpen, onClose }) => {
               {/* Left Side - Images */}
               <div className="md:w-1/2 bg-gray-50 p-6">
                 <div className="relative aspect-square mb-4">
-                  <img
+                  <OptimizedImage
                     src={productImages[selectedImage] || product.image}
                     alt={product.name}
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-full rounded-lg"
+                    aspectRatio="1/1"
+                    objectFit="cover"
+                    priority={selectedImage === 0}
                   />
                 </div>
                 {productImages.length > 1 && (
@@ -183,10 +187,13 @@ const QuickViewModal = ({ product, isOpen, onClose }) => {
                             : 'border-gray-200'
                         }`}
                       >
-                        <img
+                        <OptimizedImage
                           src={image}
                           alt={`${product.name} ${index + 1}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full"
+                          aspectRatio="1/1"
+                          objectFit="cover"
+                          loading="lazy"
                         />
                       </button>
                     ))}

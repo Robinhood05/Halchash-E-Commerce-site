@@ -55,11 +55,20 @@ $heroProducts = $heroStmt->fetchAll();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="bg-gray-100">
-    <div class="flex">
+    <div class="flex h-screen">
         <?php include 'sidebar.php'; ?>
         
-        <div class="flex-1 p-8">
-            <h1 class="text-3xl font-bold mb-6">Manage Hero Products</h1>
+        <div class="flex-1 overflow-auto lg:ml-0">
+            <!-- Mobile Top Bar -->
+            <div class="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-3">
+                <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h2 class="text-lg font-bold mt-2">Hero Products</h2>
+            </div>
+            
+            <div class="p-4 lg:p-8">
+                <h1 class="text-2xl lg:text-3xl font-bold mb-4 lg:mb-6 hidden lg:block">Manage Hero Products</h1>
             
             <?php if (isset($success)): ?>
                 <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">

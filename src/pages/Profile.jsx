@@ -4,6 +4,7 @@ import { useProducts } from '../context/ProductContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import OptimizedImage from '../components/common/OptimizedImage';
 import { 
   Upload, Edit2, Save, X, Package, Truck, ShoppingBag, 
   XCircle, Heart, Headphones, MapPin, Star, MessageSquare
@@ -266,10 +267,14 @@ const Profile = () => {
             {/* Avatar and Name */}
             <div className="flex flex-col items-center mb-6">
               <div className="relative">
-                <img
+                <OptimizedImage
                   src={previewAvatar || user.avatar || '/default-avatar.png'}
                   alt="Avatar"
-                  className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
+                  className="w-32 h-32 rounded-full border-4 border-white shadow-xl"
+                  aspectRatio="1/1"
+                  objectFit="cover"
+                  loading="eager"
+                  priority
                 />
                 <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 bg-emerald-600 text-white p-2 rounded-full cursor-pointer shadow-lg hover:bg-emerald-700 transition">
                   <Upload size={16} />

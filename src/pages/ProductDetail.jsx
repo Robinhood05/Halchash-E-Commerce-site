@@ -11,6 +11,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import ProductCard from '../components/product/ProductCard';
+import OptimizedImage from '../components/common/OptimizedImage';
 import toast from 'react-hot-toast';
 import { useProducts } from '../context/ProductContext';
 import { API_BASE_URL } from '../config/api';
@@ -32,6 +33,7 @@ const ProductDetail = () => {
   const [currentProduct, setCurrentProduct] = useState(product);
   const [showQuickCheckout, setShowQuickCheckout] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [deliveryLocation, setDeliveryLocation] = useState('inside_dhaka'); // 'inside_dhaka' or 'outside_dhaka'
   const [checkoutData, setCheckoutData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -180,7 +182,7 @@ const ProductDetail = () => {
 
       const itemPrice = displayProduct.discountPrice || displayProduct.price;
       const subtotal = itemPrice * quantity;
-      const shippingCost = 50;
+      const shippingCost = deliveryLocation === 'inside_dhaka' ? 60 : 120;
       const total = subtotal + shippingCost;
 
       const orderPayload = {
@@ -283,35 +285,38 @@ const ProductDetail = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+      <div className="container mx-auto px-3 md:px-4 py-4 md:py-6 lg:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 mb-8 md:mb-12 lg:mb-16">
           {/* Product Images */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {/* Main Image */}
-              <div className="relative aspect-square bg-white rounded-2xl overflow-hidden shadow-lg">
+              <div className="relative aspect-square bg-white rounded-lg md:rounded-xl lg:rounded-2xl overflow-hidden shadow-md md:shadow-lg">
                 {displayProduct.badge && (
-                  <div className="absolute top-4 left-4 z-10">
-                    <span className="bg-red-500 text-white px-3 py-1 text-sm font-medium rounded-full">
+                  <div className="absolute top-2 md:top-4 left-2 md:left-4 z-10">
+                    <span className="bg-red-500 text-white px-2 md:px-3 py-1 text-xs md:text-sm font-medium rounded-full">
                       {displayProduct.badge}
                     </span>
                   </div>
                 )}
                 {displayProduct.discount && (
-                  <div className="absolute top-4 right-4 z-10">
-                    <span className="bg-red-500 text-white px-3 py-1 text-sm font-bold rounded-full">
+                  <div className="absolute top-2 md:top-4 right-2 md:right-4 z-10">
+                    <span className="bg-red-500 text-white px-2 md:px-3 py-1 text-xs md:text-sm font-bold rounded-full">
                       -{displayProduct.discount}%
                     </span>
                   </div>
                 )}
-                <img
+                <OptimizedImage
                   src={productImages[selectedImage]}
                   alt={displayProduct.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full"
+                  aspectRatio="1/1"
+                  objectFit="cover"
+                  priority={selectedImage === 0}
                 />
                 
                 {/* Image Navigation */}
@@ -321,17 +326,19 @@ const ProductDetail = () => {
                       onClick={() => setSelectedImage(prev => 
                         prev === 0 ? productImages.length - 1 : prev - 1
                       )}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg transition-all"
+                      className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white active:bg-gray-100 p-2 md:p-2.5 rounded-full shadow-lg transition-all touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      aria-label="Previous image"
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
                     <button
                       onClick={() => setSelectedImage(prev => 
                         prev === productImages.length - 1 ? 0 : prev + 1
                       )}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg transition-all"
+                      className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white active:bg-gray-100 p-2 md:p-2.5 rounded-full shadow-lg transition-all touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      aria-label="Next image"
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
                     </button>
                   </>
                 )}
@@ -339,21 +346,25 @@ const ProductDetail = () => {
 
               {/* Thumbnail Images */}
               {productImages.length > 1 && (
-                <div className="flex space-x-2 overflow-x-auto">
+                <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide -webkit-overflow-scrolling-touch">
                   {productImages.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImage(index)}
-                      className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                      className={`flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all touch-manipulation min-w-[64px] min-h-[64px] ${
                         selectedImage === index 
-                          ? 'border-emerald-500' 
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-emerald-500 ring-2 ring-emerald-200' 
+                          : 'border-gray-200 hover:border-gray-300 active:border-emerald-400'
                       }`}
+                      aria-label={`View image ${index + 1}`}
                     >
-                      <img
+                      <OptimizedImage
                         src={image}
                         alt={`${product.name} ${index + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full"
+                        aspectRatio="1/1"
+                        objectFit="cover"
+                        loading="lazy"
                       />
                     </button>
                   ))}
@@ -367,10 +378,10 @@ const ProductDetail = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="space-y-6"
+            className="space-y-4 md:space-y-5 lg:space-y-6"
           >
             {/* Category */}
-            <div className="text-sm text-emerald-600 font-medium uppercase tracking-wide">
+            <div className="text-xs md:text-sm text-emerald-600 font-medium uppercase tracking-wide">
               {displayProduct.categoryName ||
                (displayProduct.category === 'shari' ? 'Shari & Clothing' :
                 displayProduct.category === 'sweets' ? 'Traditional Sweets' :
@@ -381,17 +392,17 @@ const ProductDetail = () => {
             </div>
 
             {/* Product Name */}
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 leading-tight">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 leading-tight">
               {displayProduct.name}
             </h1>
 
             {/* Rating */}
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-wrap items-center gap-3 md:gap-4">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`w-5 h-5 ${
+                    className={`w-4 h-4 md:w-5 md:h-5 ${
                       i < Math.floor(currentProduct?.rating || product.rating)
                         ? 'text-yellow-400 fill-current'
                         : 'text-gray-300'
@@ -399,30 +410,30 @@ const ProductDetail = () => {
                   />
                 ))}
               </div>
-              <span className="text-gray-600">
+              <span className="text-sm md:text-base text-gray-600">
                 {(currentProduct?.rating || product.rating).toFixed(1)} ({(currentProduct?.reviews || product.reviews)} reviews)
               </span>
             </div>
 
             {/* Price */}
-            <div className="flex items-center space-x-4">
-              <span className="text-3xl font-bold text-emerald-600">
+            <div className="flex flex-wrap items-center gap-3 md:gap-4">
+              <span className="text-2xl md:text-3xl font-bold text-emerald-600">
                 ৳{displayProduct.discountPrice || displayProduct.price}
               </span>
               {displayProduct.discountPrice && (
-                <span className="text-xl text-gray-500 line-through">
+                <span className="text-lg md:text-xl text-gray-500 line-through">
                   ৳{displayProduct.price}
                 </span>
               )}
               {displayProduct.discount && (
-                <span className="bg-red-100 text-red-800 px-2 py-1 text-sm font-medium rounded">
+                <span className="bg-red-100 text-red-800 px-2 md:px-3 py-1 text-xs md:text-sm font-medium rounded">
                   Save {displayProduct.discount}%
                 </span>
               )}
             </div>
 
             {/* Description */}
-            <p className="text-gray-600 text-lg leading-relaxed">
+            <p className="text-gray-600 text-sm md:text-base lg:text-lg leading-relaxed">
               {displayProduct.description}
             </p>
 
@@ -451,82 +462,86 @@ const ProductDetail = () => {
 
             {/* Quantity and Add to Cart */}
             <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <span className="font-medium text-gray-800">Quantity:</span>
+              <div className="flex items-center space-x-3 md:space-x-4">
+                <span className="font-medium text-gray-800 text-sm md:text-base">Quantity:</span>
                 <div className="flex items-center border border-gray-300 rounded-lg">
                   <button
                     onClick={() => handleQuantityChange(-1)}
                     disabled={quantity <= 1}
-                    className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2.5 md:p-2 hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation min-w-[44px] min-h-[44px] md:min-w-[36px] md:min-h-[36px] flex items-center justify-center"
+                    aria-label="Decrease quantity"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
-                  <span className="px-4 py-2 font-medium">{quantity}</span>
+                  <span className="px-4 md:px-4 py-2 font-medium text-sm md:text-base min-w-[3rem] text-center">{quantity}</span>
                   <button
                     onClick={() => handleQuantityChange(1)}
                     disabled={quantity >= 10}
-                    className="p-2 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2.5 md:p-2 hover:bg-gray-100 active:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation min-w-[44px] min-h-[44px] md:min-w-[36px] md:min-h-[36px] flex items-center justify-center"
+                    aria-label="Increase quantity"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
                 <Button
                   onClick={handleAddToCart}
                   disabled={!displayProduct.inStock}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3 text-lg"
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-medium py-3 md:py-3 text-base md:text-lg min-h-[48px] md:min-h-[44px] touch-manipulation"
                 >
-                  <ShoppingCart className="w-5 h-5 mr-2" />
+                  <ShoppingCart className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                   Add to Cart
                 </Button>
                 <Button
                   onClick={handleOrderNow}
                   disabled={!displayProduct.inStock}
-                  className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 text-lg"
+                  className="flex-1 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-medium py-3 md:py-3 text-base md:text-lg min-h-[48px] md:min-h-[44px] touch-manipulation"
                 >
-                  <Zap className="w-5 h-5 mr-2" />
+                  <Zap className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                   Order Now
                 </Button>
                 <Button
                   variant="outline"
                   onClick={handleWishlist}
-                  className={`px-6 py-3 ${isInWishlist(displayProduct.id) ? 'text-red-500 border-red-500' : ''}`}
+                  className={`px-4 md:px-6 py-3 min-h-[48px] md:min-h-[44px] touch-manipulation ${isInWishlist(displayProduct.id) ? 'text-red-500 border-red-500' : ''}`}
+                  aria-label="Add to wishlist"
                 >
-                  <Heart className={`w-5 h-5 ${isInWishlist(displayProduct.id) ? 'fill-current' : ''}`} />
+                  <Heart className={`w-4 h-4 md:w-5 md:h-5 ${isInWishlist(displayProduct.id) ? 'fill-current' : ''}`} />
                 </Button>
                 <Button
                   variant="outline"
                   onClick={handleShare}
-                  className="px-6 py-3"
+                  className="px-4 md:px-6 py-3 min-h-[48px] md:min-h-[44px] touch-manipulation"
+                  aria-label="Share product"
                 >
-                  <Share2 className="w-5 h-5" />
+                  <Share2 className="w-4 h-4 md:w-5 md:h-5" />
                 </Button>
               </div>
             </div>
 
             {/* Guarantees */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t">
-              <div className="flex items-center space-x-3">
-                <Truck className="w-6 h-6 text-emerald-600" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 pt-4 md:pt-6 border-t">
+              <div className="flex items-center space-x-2 md:space-x-3">
+                <Truck className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 flex-shrink-0" />
                 <div>
-                  <p className="font-medium text-gray-800">Free Delivery</p>
-                  <p className="text-sm text-gray-600">On orders over ৳500</p>
+                  <p className="font-medium text-gray-800 text-sm md:text-base">Free Delivery</p>
+                  <p className="text-xs md:text-sm text-gray-600">On orders over ৳500</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <RotateCcw className="w-6 h-6 text-emerald-600" />
+              <div className="flex items-center space-x-2 md:space-x-3">
+                <RotateCcw className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 flex-shrink-0" />
                 <div>
-                  <p className="font-medium text-gray-800">Easy Returns</p>
-                  <p className="text-sm text-gray-600">7-day return policy</p>
+                  <p className="font-medium text-gray-800 text-sm md:text-base">Easy Returns</p>
+                  <p className="text-xs md:text-sm text-gray-600">7-day return policy</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <Shield className="w-6 h-6 text-emerald-600" />
+              <div className="flex items-center space-x-2 md:space-x-3">
+                <Shield className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 flex-shrink-0" />
                 <div>
-                  <p className="font-medium text-gray-800">Authentic</p>
-                  <p className="text-sm text-gray-600">100% genuine products</p>
+                  <p className="font-medium text-gray-800 text-sm md:text-base">Authentic</p>
+                  <p className="text-xs md:text-sm text-gray-600">100% genuine products</p>
                 </div>
               </div>
             </div>
@@ -566,10 +581,13 @@ const ProductDetail = () => {
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
                           {review.user_avatar ? (
-                            <img
+                            <OptimizedImage
                               src={review.user_avatar}
                               alt={review.user_name}
-                              className="w-10 h-10 rounded-full object-cover"
+                              className="w-10 h-10 rounded-full"
+                              aspectRatio="1/1"
+                              objectFit="cover"
+                              loading="lazy"
                             />
                           ) : (
                             <User className="w-6 h-6 text-emerald-600" />
@@ -640,64 +658,68 @@ const ProductDetail = () => {
 
         {/* Quick Checkout Modal */}
         {showQuickCheckout && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-3 md:p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white rounded-lg md:rounded-xl shadow-xl max-w-md w-full max-h-[95vh] md:max-h-[90vh] overflow-y-auto"
             >
-              <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800">Quick Checkout</h2>
+              <div className="sticky top-0 bg-white border-b px-4 md:px-6 py-3 md:py-4 flex justify-between items-center z-10">
+                <h2 className="text-lg md:text-xl font-bold text-gray-800">Quick Checkout</h2>
                 <button
                   onClick={() => setShowQuickCheckout(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 active:text-gray-900 p-2 -mr-2 touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  aria-label="Close modal"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="p-6">
+              <div className="p-4 md:p-6">
                 {/* Order Summary */}
-                <div className="mb-6 pb-6 border-b">
-                  <h3 className="font-semibold text-gray-800 mb-3">Order Summary</h3>
-                  <div className="flex items-center space-x-4 mb-4">
-                    <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
+                <div className="mb-4 md:mb-6 pb-4 md:pb-6 border-b">
+                  <h3 className="font-semibold text-gray-800 mb-3 text-sm md:text-base">Order Summary</h3>
+                  <div className="flex items-center space-x-3 md:space-x-4 mb-3 md:mb-4">
+                    <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                      <OptimizedImage
                         src={displayProduct.image}
                         alt={displayProduct.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full"
+                        aspectRatio="1/1"
+                        objectFit="cover"
+                        loading="lazy"
                       />
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-800">{displayProduct.name}</h4>
-                      <p className="text-sm text-gray-600">Quantity: {quantity}</p>
-                      <p className="text-emerald-600 font-semibold">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-800 text-sm md:text-base truncate">{displayProduct.name}</h4>
+                      <p className="text-xs md:text-sm text-gray-600">Quantity: {quantity}</p>
+                      <p className="text-emerald-600 font-semibold text-sm md:text-base">
                         ৳{(displayProduct.discountPrice || displayProduct.price) * quantity}
                       </p>
                     </div>
                   </div>
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-2 text-xs md:text-sm">
                     <div className="flex justify-between text-gray-600">
                       <span>Subtotal:</span>
                       <span>৳{((displayProduct.discountPrice || displayProduct.price) * quantity).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-gray-600">
                       <span>Shipping:</span>
-                      <span>৳50.00</span>
+                      <span>৳{deliveryLocation === 'inside_dhaka' ? '60.00' : '120.00'}</span>
                     </div>
-                    <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                    <div className="flex justify-between font-bold text-base md:text-lg pt-2 border-t">
                       <span>Total:</span>
                       <span className="text-emerald-600">
-                        ৳{(((displayProduct.discountPrice || displayProduct.price) * quantity) + 50).toFixed(2)}
+                        ৳{(((displayProduct.discountPrice || displayProduct.price) * quantity) + (deliveryLocation === 'inside_dhaka' ? 60 : 120)).toFixed(2)}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Checkout Form */}
-                <form onSubmit={handleQuickCheckoutSubmit} className="space-y-4">
+                <form onSubmit={handleQuickCheckoutSubmit} className="space-y-3 md:space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
                       Full Name *
                     </label>
                     <Input
@@ -707,10 +729,11 @@ const ProductDetail = () => {
                       onChange={handleCheckoutInputChange}
                       required
                       placeholder="Enter your full name"
+                      className="text-sm md:text-base min-h-[48px] md:min-h-[40px]"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
                       Email Address *
                     </label>
                     <Input
@@ -720,10 +743,11 @@ const ProductDetail = () => {
                       onChange={handleCheckoutInputChange}
                       required
                       placeholder="Enter your email"
+                      className="text-sm md:text-base min-h-[48px] md:min-h-[40px]"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
                       Phone Number *
                     </label>
                     <Input
@@ -733,10 +757,42 @@ const ProductDetail = () => {
                       onChange={handleCheckoutInputChange}
                       required
                       placeholder="Enter your phone number"
+                      className="text-sm md:text-base min-h-[48px] md:min-h-[40px]"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
+                      Delivery Location *
+                    </label>
+                    <div className="grid grid-cols-2 gap-2 md:gap-3 mb-3 md:mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setDeliveryLocation('inside_dhaka')}
+                        className={`px-3 md:px-4 py-2.5 md:py-3 border-2 rounded-lg font-medium transition-all text-xs md:text-sm touch-manipulation min-h-[48px] md:min-h-[44px] ${
+                          deliveryLocation === 'inside_dhaka'
+                            ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
+                            : 'border-gray-300 bg-white text-gray-700 active:border-emerald-400'
+                        }`}
+                      >
+                        Inside Dhaka
+                        <span className="block text-[10px] md:text-xs mt-1 text-gray-500">৳60</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeliveryLocation('outside_dhaka')}
+                        className={`px-3 md:px-4 py-2.5 md:py-3 border-2 rounded-lg font-medium transition-all text-xs md:text-sm touch-manipulation min-h-[48px] md:min-h-[44px] ${
+                          deliveryLocation === 'outside_dhaka'
+                            ? 'border-emerald-600 bg-emerald-50 text-emerald-700'
+                            : 'border-gray-300 bg-white text-gray-700 active:border-emerald-400'
+                        }`}
+                      >
+                        Outside Dhaka
+                        <span className="block text-[10px] md:text-xs mt-1 text-gray-500">৳120</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
                       Delivery Address *
                     </label>
                     <textarea
@@ -745,30 +801,30 @@ const ProductDetail = () => {
                       onChange={handleCheckoutInputChange}
                       required
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full px-3 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm md:text-base min-h-[120px]"
                       placeholder="Enter your delivery address"
                     />
                   </div>
-                  <div className="flex gap-3 pt-4">
+                  <div className="flex gap-2 md:gap-3 pt-3 md:pt-4">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => setShowQuickCheckout(false)}
-                      className="flex-1"
+                      className="flex-1 min-h-[48px] md:min-h-[44px] touch-manipulation text-sm md:text-base"
                       disabled={isPlacingOrder}
                     >
                       Cancel
                     </Button>
                     <Button
                       type="submit"
-                      className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+                      className="flex-1 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white min-h-[48px] md:min-h-[44px] touch-manipulation text-sm md:text-base"
                       disabled={isPlacingOrder}
                     >
                       {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
                     </Button>
                   </div>
                   {!user && (
-                    <p className="text-xs text-gray-500 text-center">
+                    <p className="text-[10px] md:text-xs text-gray-500 text-center px-2">
                       * An account will be created automatically using your order information
                     </p>
                   )}

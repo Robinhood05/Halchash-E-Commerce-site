@@ -40,11 +40,29 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 try {
     $pdo = getDBConnection();
     
-    // Check if email already exists
-    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-    $stmt->execute([$email]);
+    // Normalize email to lowercase for case-insensitive checking
+    $emailLower = strtolower(trim($email));
+    
+    // Check if email already exists (case-insensitive)
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE LOWER(email) = ?");
+    $stmt->execute([$emailLower]);
     if ($stmt->fetch()) {
         sendJSONResponse(['success' => false, 'error' => 'Email already registered']);
+    }
+    
+    // Use normalized email for storage
+    $email = $emailLower;
+    
+    // Normalize phone: trim and set to NULL if empty
+    $phone = !empty(trim($phone)) ? trim($phone) : null;
+    
+    // Check if phone number already exists (only if phone is provided)
+    if ($phone !== null) {
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE phone = ?");
+        $stmt->execute([$phone]);
+        if ($stmt->fetch()) {
+            sendJSONResponse(['success' => false, 'error' => 'Phone number already registered']);
+        }
     }
 
     // Hash password
@@ -110,7 +128,25 @@ try {
     ]);
 } catch (PDOException $e) {
     error_log("Signup error: " . $e->getMessage());
-    sendJSONResponse(['success' => false, 'error' => 'Registration failed'], 500);
+    
+    // Handle unique constraint violations
+    $errorInfo = $e->errorInfo();
+    $sqlState = $errorInfo[0] ?? '';
+    $mysqlErrorCode = $errorInfo[1] ?? 0;
+    $errorMsg = $e->getMessage();
+    
+    // Check for duplicate entry (SQLSTATE 23000 or MySQL error 1062)
+    if ($sqlState == '23000' || $mysqlErrorCode == 1062 || strpos($errorMsg, 'Duplicate entry') !== false) {
+        if (stripos($errorMsg, 'email') !== false || stripos($errorMsg, 'users.email') !== false) {
+            sendJSONResponse(['success' => false, 'error' => 'Email already registered']);
+        } elseif (stripos($errorMsg, 'phone') !== false || stripos($errorMsg, 'users.phone') !== false || stripos($errorMsg, 'unique_phone') !== false) {
+            sendJSONResponse(['success' => false, 'error' => 'Phone number already registered']);
+        } else {
+            sendJSONResponse(['success' => false, 'error' => 'Registration failed: Duplicate entry']);
+        }
+    } else {
+        sendJSONResponse(['success' => false, 'error' => 'Registration failed'], 500);
+    }
 }
 
 ?>

@@ -156,18 +156,18 @@ const Products = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Page Header */}
+      {/* Page Header - Mobile-first */}
       <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-4 md:py-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 md:mb-4">
               All Products
             </h1>
-            <p className="text-lg text-gray-600">
+            <p className="text-sm md:text-base lg:text-lg text-gray-600">
               Discover our complete collection of authentic Bengali products
             </p>
             {error && (
@@ -179,11 +179,11 @@ const Products = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Filters */}
+      <div className="container mx-auto px-4 py-4 md:py-8">
+        <div className="flex flex-col lg:flex-row gap-4 md:gap-8">
+          {/* Sidebar Filters - Mobile-first */}
           <div className={`lg:w-80 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-800">Filters</h2>
                 <Button
@@ -291,21 +291,21 @@ const Products = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Toolbar */}
-            <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div className="flex items-center gap-4">
+            {/* Toolbar - Mobile-first */}
+            <div className="bg-white rounded-lg shadow-sm p-3 md:p-4 mb-4 md:mb-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4">
+                <div className="flex items-center gap-2 md:gap-4 w-full sm:w-auto">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setShowFilters(true)}
-                    className="lg:hidden"
+                    className="lg:hidden min-w-[48px] min-h-[48px] md:min-h-[36px]"
                   >
-                    <Filter className="w-4 h-4 mr-2" />
-                    Filters
+                    <Filter className="w-4 h-4 md:mr-2" />
+                    <span className="hidden sm:inline">Filters</span>
                   </Button>
                   
-                  <p className="text-gray-600">
+                  <p className="text-xs md:text-sm text-gray-600">
                     Showing {filteredProducts.length} of {products.length} products
                   </p>
                 </div>
@@ -315,6 +315,7 @@ const Products = () => {
                     variant={viewMode === 'grid' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setViewMode('grid')}
+                    className="min-w-[48px] min-h-[48px] md:min-h-[36px]"
                   >
                     <Grid className="w-4 h-4" />
                   </Button>
@@ -322,6 +323,7 @@ const Products = () => {
                     variant={viewMode === 'list' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setViewMode('list')}
+                    className="min-w-[48px] min-h-[48px] md:min-h-[36px]"
                   >
                     <List className="w-4 h-4" />
                   </Button>
@@ -329,16 +331,16 @@ const Products = () => {
               </div>
             </div>
 
-            {/* Products Grid */}
+            {/* Products Grid - Mobile-first: 1 column on mobile, 2 on tablet, 3+ on desktop */}
             {filteredProducts.length > 0 ? (
               <motion.div
                 key={`products-${selectedCategory}-${searchQuery}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.2 }}
-                className={`grid gap-6 ${
+                className={`grid gap-2 md:gap-3 ${
                   viewMode === 'grid' 
-                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+                    ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' 
                     : 'grid-cols-1'
                 }`}
               >

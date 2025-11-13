@@ -53,7 +53,7 @@ try {
     // Get base URL for avatar
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
-    $avatarUrl = $protocol . '://' . $host . '/uploads/avatars/' . $fileName;
+    $avatarUrl = $protocol . '://' . $host . UPLOAD_BASE_PATH . '/avatars/' . $fileName;
 
     // Update user avatar in database
     $pdo = getDBConnection();

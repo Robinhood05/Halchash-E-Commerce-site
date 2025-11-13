@@ -30,6 +30,18 @@ try {
     if ($stmt->fetch()) {
         sendJSONResponse(['success' => false, 'error' => 'Email already in use']);
     }
+    
+    // Normalize phone: trim and set to NULL if empty
+    $phone = !empty(trim($phone)) ? trim($phone) : null;
+    
+    // Check if phone number is already used by another user (only if phone is provided)
+    if ($phone !== null) {
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE phone = ? AND id != ?");
+        $stmt->execute([$phone, $userId]);
+        if ($stmt->fetch()) {
+            sendJSONResponse(['success' => false, 'error' => 'Phone number already in use']);
+        }
+    }
 
     // Update user
     $stmt = $pdo->prepare("
@@ -51,7 +63,25 @@ try {
     ]);
 } catch (PDOException $e) {
     error_log("Profile update error: " . $e->getMessage());
-    sendJSONResponse(['success' => false, 'error' => 'Profile update failed'], 500);
+    
+    // Handle unique constraint violations
+    $errorInfo = $e->errorInfo();
+    $sqlState = $errorInfo[0] ?? '';
+    $mysqlErrorCode = $errorInfo[1] ?? 0;
+    $errorMsg = $e->getMessage();
+    
+    // Check for duplicate entry (SQLSTATE 23000 or MySQL error 1062)
+    if ($sqlState == '23000' || $mysqlErrorCode == 1062 || strpos($errorMsg, 'Duplicate entry') !== false) {
+        if (stripos($errorMsg, 'email') !== false || stripos($errorMsg, 'users.email') !== false) {
+            sendJSONResponse(['success' => false, 'error' => 'Email already in use']);
+        } elseif (stripos($errorMsg, 'phone') !== false || stripos($errorMsg, 'users.phone') !== false || stripos($errorMsg, 'unique_phone') !== false) {
+            sendJSONResponse(['success' => false, 'error' => 'Phone number already in use']);
+        } else {
+            sendJSONResponse(['success' => false, 'error' => 'Profile update failed: Duplicate entry']);
+        }
+    } else {
+        sendJSONResponse(['success' => false, 'error' => 'Profile update failed'], 500);
+    }
 } catch (Exception $e) {
     error_log("Unexpected error: " . $e->getMessage());
     sendJSONResponse(['success' => false, 'error' => 'Unexpected error'], 500);

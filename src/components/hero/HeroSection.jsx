@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, MessageCircle, Phone, MessageSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MessageCircle, Phone, MessageSquare, ArrowUp } from 'lucide-react';
 import { Button } from '../ui/button';
+import OptimizedImage from '../common/OptimizedImage';
 import { API_BASE_URL } from '../../config/api';
 
 // Helper function to build image URLs
@@ -122,8 +123,8 @@ const HeroSection = () => {
   if (loading) {
     return (
       <section className="relative overflow-hidden">
-        <div className="h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center bg-gray-100">
-          <p className="text-gray-500">Loading hero section...</p>
+        <div className="h-[350px] sm:h-[400px] md:h-[500px] lg:h-[600px] flex items-center justify-center bg-gray-100">
+          <p className="text-gray-500 text-sm sm:text-base">Loading hero section...</p>
         </div>
       </section>
     );
@@ -140,13 +141,103 @@ const HeroSection = () => {
     ? [currentHero.image, currentHero.image, currentHero.image, currentHero.image]
     : [];
 
+  // Contact information
+  const phoneNumber = '01742060566';
+  const whatsappNumber = '8801742060566'; // Bangladesh country code
+  const messengerLink = 'https://www.facebook.com/iamarraza';
+  
+  // Handle phone call
+  const handlePhoneCall = () => {
+    window.location.href = `tel:${phoneNumber}`;
+  };
+  
+  // Handle WhatsApp
+  const handleWhatsApp = () => {
+    const message = encodeURIComponent('Hello! I am interested in your products.');
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
+  };
+  
+  // Handle Messenger
+  const handleMessenger = () => {
+    window.open(`https://m.me/iamarraza`, '_blank');
+  };
+  
+  // Handle scroll to top
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <section className="relative overflow-hidden">
-      {/* Main Hero Slider - Hit Bangladesh Style */}
-      <div className="relative h-[400px] md:h-[500px] lg:h-[600px]">
-        {/* Orange Borders */}
-        <div className="absolute inset-0 border-[6px] md:border-[8px] border-orange-500 z-20 pointer-events-none"></div>
-        <div className="absolute inset-0 border-[2px] border-orange-500/50 z-20 pointer-events-none"></div>
+      {/* Floating Action Buttons - Smaller size */}
+      <div className="fixed right-2 sm:right-3 md:right-4 bottom-20 sm:bottom-24 md:bottom-auto md:top-1/2 md:-translate-y-1/2 z-[100] flex flex-col gap-1.5 sm:gap-2 md:gap-2">
+        {/* Messenger Button */}
+        <motion.button
+          whileHover={{ scale: 1.05, y: -1 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5, duration: 0.3 }}
+          onClick={handleMessenger}
+          className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white p-2 rounded-full shadow-md transition-all duration-200 touch-manipulation w-9 h-9 sm:w-10 sm:h-10 md:w-10 md:h-10 flex items-center justify-center group relative"
+          aria-label="Contact us on Messenger"
+          title="Message us on Facebook Messenger"
+        >
+          <MessageCircle className="w-3.5 h-3.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white" />
+          <span className="absolute -right-0.5 top-0 w-1.5 h-1.5 bg-red-500 rounded-full border border-white animate-pulse"></span>
+        </motion.button>
+        
+        {/* Phone Button */}
+        <motion.button
+          whileHover={{ scale: 1.05, y: -1 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.6, duration: 0.3 }}
+          onClick={handlePhoneCall}
+          className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white p-2 rounded-full shadow-md transition-all duration-200 touch-manipulation w-9 h-9 sm:w-10 sm:h-10 md:w-10 md:h-10 flex items-center justify-center group"
+          aria-label="Call us"
+          title={`Call us at ${phoneNumber}`}
+        >
+          <Phone className="w-3.5 h-3.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white" />
+        </motion.button>
+        
+        {/* WhatsApp Button */}
+        <motion.button
+          whileHover={{ scale: 1.05, y: -1 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.7, duration: 0.3 }}
+          onClick={handleWhatsApp}
+          className="bg-[#25D366] hover:bg-[#20BA5A] active:bg-[#1DA851] text-white p-2 rounded-full shadow-md transition-all duration-200 touch-manipulation w-9 h-9 sm:w-10 sm:h-10 md:w-10 md:h-10 flex items-center justify-center group"
+          aria-label="Contact us on WhatsApp"
+          title="Message us on WhatsApp"
+        >
+          <MessageSquare className="w-3.5 h-3.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white" />
+        </motion.button>
+        
+        {/* Scroll to Top Button */}
+        <motion.button
+          whileHover={{ scale: 1.05, y: -1 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.8, duration: 0.3 }}
+          onClick={handleScrollToTop}
+          className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white p-2 rounded-full shadow-md transition-all duration-200 touch-manipulation w-9 h-9 sm:w-10 sm:h-10 md:w-10 md:h-10 flex items-center justify-center group"
+          aria-label="Scroll to top"
+          title="Scroll to top"
+        >
+          <ArrowUp className="w-3.5 h-3.5 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white" />
+        </motion.button>
+      </div>
+
+      {/* Main Hero Slider - Mobile-First Design */}
+      <div className="relative h-[350px] sm:h-[400px] md:h-[500px] lg:h-[600px]">
+        {/* Orange Borders - Mobile optimized */}
+        <div className="absolute inset-0 border-[4px] sm:border-[6px] md:border-[8px] border-orange-500 z-20 pointer-events-none"></div>
+        <div className="absolute inset-0 border-[1px] sm:border-[2px] border-orange-500/50 z-20 pointer-events-none"></div>
         
         <AnimatePresence mode="wait">
           <motion.div
@@ -168,53 +259,49 @@ const HeroSection = () => {
               }}
             ></div>
             
-            <div className="container mx-auto px-4 md:px-6 lg:px-8 h-full relative z-10">
-              <div className="h-full flex items-center">
-                <div className="grid grid-cols-12 gap-4 lg:gap-8 items-center w-full">
-                  {/* Left Side - Products Display */}
-                  <motion.div
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2, duration: 0.5 }}
-                    className="col-span-12 md:col-span-5 lg:col-span-4"
-                  >
-                    <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 h-full relative z-10">
+              <div className="h-full flex items-center py-4 sm:py-6">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4 lg:gap-8 items-center w-full">
+                  {/* Mobile Layout: Stack vertically on small screens */}
+                  <div className="md:col-span-12 lg:col-span-4 order-2 md:order-1">
+                    {/* Products Grid - Hidden on mobile, shown on tablet+ */}
+                    <div className="hidden md:grid grid-cols-2 gap-3 lg:gap-4">
                       {productImages.slice(0, 4).map((img, index) => (
-                        <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg p-2 md:p-3 shadow-xl">
-                          <img
+                        <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg p-2 lg:p-3 shadow-xl">
+                          <OptimizedImage
                             src={img}
                             alt={`${currentHero.title} ${index + 1}`}
-                            className="w-full h-auto rounded object-cover"
-                            onError={(e) => {
-                              e.target.src = 'https://placehold.co/200x200?text=Product';
-                            }}
+                            className="w-full h-auto rounded"
+                            aspectRatio="1/1"
+                            objectFit="cover"
+                            loading={index < 2 ? 'eager' : 'lazy'}
                           />
                         </div>
                       ))}
                     </div>
-                  </motion.div>
+                  </div>
 
-                  {/* Center/Right - Promotional Text */}
+                  {/* Promotional Text - Mobile First */}
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.3, duration: 0.5 }}
-                    className="col-span-12 md:col-span-7 lg:col-span-6 text-white text-center md:text-left"
+                    className="col-span-1 md:col-span-7 lg:col-span-6 text-white text-center md:text-left order-1 md:order-2"
                   >
-                    <div className="space-y-2 md:space-y-4">
-                      <h1 className="text-4xl md:text-5xl lg:text-7xl font-black leading-none text-white drop-shadow-2xl">
+                    <div className="space-y-1.5 sm:space-y-2 md:space-y-4">
+                      <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-black leading-tight sm:leading-none text-white drop-shadow-2xl">
                         {currentHero.title}
                       </h1>
-                      <h2 className="text-5xl md:text-6xl lg:text-8xl font-black leading-none text-orange-500 drop-shadow-2xl">
+                      <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-black leading-tight sm:leading-none text-orange-500 drop-shadow-2xl">
                         {currentHero.subtitle}
                       </h2>
-                      <p className="text-xl md:text-2xl lg:text-3xl font-bold text-white/90 mt-2 md:mt-4">
+                      <p className="text-base sm:text-lg md:text-2xl lg:text-3xl font-bold text-white/90 mt-1 sm:mt-2 md:mt-4">
                         {currentHero.description}
                       </p>
-                      <div className="pt-2 md:pt-4">
+                      <div className="pt-2 sm:pt-3 md:pt-4">
                         <Button 
                           size="lg"
-                          className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 md:px-8 py-3 md:py-4 text-base md:text-lg shadow-2xl hover:shadow-orange-500/50 transition-all transform hover:scale-105"
+                          className="bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold px-5 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 text-sm sm:text-base md:text-lg shadow-2xl hover:shadow-orange-500/50 transition-all transform hover:scale-105 active:scale-95 min-h-[48px] sm:min-h-[52px] touch-manipulation w-full sm:w-auto"
                           onClick={() => {
                             if (currentHero.productId) {
                               navigate(`/product/${currentHero.productId}`);
@@ -231,40 +318,27 @@ const HeroSection = () => {
                     </div>
                   </motion.div>
 
-                  {/* Right Side - Discount Badge & Social Icons */}
+                  {/* Discount Badge - Mobile optimized */}
                   <motion.div
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4, duration: 0.5 }}
-                    className="col-span-12 md:col-span-12 lg:col-span-2 flex flex-col items-center lg:items-end justify-between h-full py-4"
+                    className="col-span-1 md:col-span-12 lg:col-span-2 flex flex-col items-center lg:items-end justify-center order-3 py-2 sm:py-4"
                   >
                     {/* Discount Badge */}
                     <div className="relative">
-                      <div className="bg-white rounded-full p-4 md:p-6 shadow-2xl">
+                      <div className="bg-white rounded-full p-3 sm:p-4 md:p-6 shadow-2xl">
                         <div className="text-center">
-                          <div className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900">
+                          <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-gray-900">
                             {currentHero.discount}
                           </div>
-                          <div className="text-xs md:text-sm font-bold text-gray-700 uppercase mt-1">
+                          <div className="text-[10px] sm:text-xs md:text-sm font-bold text-gray-700 uppercase mt-0.5 sm:mt-1">
                             OFF
                           </div>
                         </div>
                         {/* Badge String Effect */}
-                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-8 bg-white/50 rounded-full"></div>
+                        <div className="absolute -top-1.5 sm:-top-2 left-1/2 -translate-x-1/2 w-6 h-6 sm:w-8 sm:h-8 bg-white/50 rounded-full"></div>
                       </div>
-                    </div>
-
-                    {/* Social Media Icons */}
-                    <div className="flex flex-col gap-3 mt-4 lg:mt-0">
-                      <a href="#" className="bg-blue-600 hover:bg-blue-700 p-2 md:p-3 rounded-full shadow-lg transition-all transform hover:scale-110" aria-label="Messenger">
-                        <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                      </a>
-                      <a href="tel:01742060566" className="bg-green-600 hover:bg-green-700 p-2 md:p-3 rounded-full shadow-lg transition-all transform hover:scale-110" aria-label="Call">
-                        <Phone className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                      </a>
-                      <a href="#" className="bg-green-500 hover:bg-green-600 p-2 md:p-3 rounded-full shadow-lg transition-all transform hover:scale-110" aria-label="WhatsApp">
-                        <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                      </a>
                     </div>
                   </motion.div>
                 </div>
@@ -273,31 +347,31 @@ const HeroSection = () => {
           </motion.div>
         </AnimatePresence>
 
-        {/* Navigation Arrows */}
+        {/* Navigation Arrows - Mobile optimized */}
         <button
           onClick={prevSlide}
-          className="absolute left-4 md:left-6 top-1/2 -translate-y-1/2 bg-orange-500/80 hover:bg-orange-500 text-white p-3 rounded-full transition-all duration-200 z-30 shadow-xl hover:shadow-2xl"
+          className="absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 bg-orange-500/90 hover:bg-orange-500 active:bg-orange-600 text-white p-2.5 sm:p-3 rounded-full transition-all duration-200 z-30 shadow-xl hover:shadow-2xl touch-manipulation min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] flex items-center justify-center"
           aria-label="Previous slide"
         >
-          <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
         </button>
         
         <button
           onClick={nextSlide}
-          className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 bg-orange-500/80 hover:bg-orange-500 text-white p-3 rounded-full transition-all duration-200 z-30 shadow-xl hover:shadow-2xl"
+          className="absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 bg-orange-500/90 hover:bg-orange-500 active:bg-orange-600 text-white p-2.5 sm:p-3 rounded-full transition-all duration-200 z-30 shadow-xl hover:shadow-2xl touch-manipulation min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] flex items-center justify-center"
           aria-label="Next slide"
         >
-          <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
         </button>
 
-        {/* Slide Indicators - Bottom Center */}
-        <div className="absolute bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-30">
+        {/* Slide Indicators - Mobile optimized */}
+        <div className="absolute bottom-3 sm:bottom-4 md:bottom-6 left-1/2 -translate-x-1/2 flex space-x-1.5 sm:space-x-2 z-30">
           {heroProducts.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
-              className={`h-2 rounded-full transition-all duration-200 ${
-                index === currentSlide ? 'bg-orange-500 w-8' : 'bg-white/40 hover:bg-white/60 w-2'
+              className={`h-1.5 sm:h-2 rounded-full transition-all duration-200 touch-manipulation min-w-[20px] sm:min-w-[24px] ${
+                index === currentSlide ? 'bg-orange-500 w-6 sm:w-8' : 'bg-white/40 hover:bg-white/60 w-1.5 sm:w-2'
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />

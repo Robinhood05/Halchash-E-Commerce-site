@@ -1,7 +1,7 @@
 -- Database: halchash_db
 -- Create database
-CREATE DATABASE IF NOT EXISTS halchash_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE halchash_db;
+/*CREATE DATABASE IF NOT EXISTS halchash_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE halchash_db;*/
 
 -- Users table for customer accounts
 CREATE TABLE IF NOT EXISTS users (
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    phone VARCHAR(20),
+    phone VARCHAR(20) UNIQUE,
     address TEXT,
     avatar VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -86,6 +86,8 @@ CREATE TABLE IF NOT EXISTS orders (
     order_number VARCHAR(50) UNIQUE NOT NULL,
     total_amount DECIMAL(10, 2) NOT NULL,
     shipping_cost DECIMAL(10, 2) DEFAULT 50.00,
+    coupon_id INT DEFAULT NULL,
+    discount_amount DECIMAL(10, 2) DEFAULT 0.00,
     status ENUM('pending', 'processing', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
     shipping_name VARCHAR(100) NOT NULL,
     shipping_email VARCHAR(100) NOT NULL,
@@ -93,7 +95,8 @@ CREATE TABLE IF NOT EXISTS orders (
     shipping_address TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Order items table
@@ -141,6 +144,44 @@ CREATE TABLE IF NOT EXISTS reviews (
 -- Insert default admin (username: admin, password: admin123)
 INSERT INTO admins (username, email, password, full_name, role) VALUES
 ('admin', 'admin@halchash.com', '$2y$12$zUOirTFS5WwE0/ce1bUnVOWAKMNKufmNkLQVZ./braO3IKw5a8dVO', 'Administrator', 'super_admin');
+
+-- Blocked users table to track blocked phone numbers
+CREATE TABLE IF NOT EXISTS blocked_users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    phone VARCHAR(20) UNIQUE NOT NULL,
+    reason TEXT,
+    blocked_by INT NOT NULL COMMENT 'Admin ID who blocked the user',
+    blocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (blocked_by) REFERENCES admins(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Coupons table
+CREATE TABLE IF NOT EXISTS coupons (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    discount_percentage DECIMAL(5, 2) NOT NULL CHECK (discount_percentage > 0 AND discount_percentage <= 100),
+    description TEXT,
+    expiry_date DATETIME,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_by INT NOT NULL COMMENT 'Admin ID who created the coupon',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES admins(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Coupon usage tracking table
+CREATE TABLE IF NOT EXISTS coupon_usage (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    coupon_id INT NOT NULL,
+    user_id INT NOT NULL,
+    order_id INT NOT NULL,
+    discount_amount DECIMAL(10, 2) NOT NULL,
+    used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_coupon (user_id, coupon_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Insert default categories
 INSERT INTO categories (name, slug, icon, description, color) VALUES

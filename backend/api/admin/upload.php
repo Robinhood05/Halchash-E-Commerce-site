@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../../config/cors.php';
+require_once '../../config/database.php';
 
 // Check authentication
 if (!isset($_SESSION['admin_id'])) {
@@ -43,7 +44,7 @@ $filepath = $uploadDir . $filename;
 // Move uploaded file
 if (move_uploaded_file($file['tmp_name'], $filepath)) {
     // Return relative path for database storage
-    $relativePath = '/backend/uploads/products/' . $filename;
+    $relativePath = UPLOAD_BASE_PATH . '/products/' . $filename;
     sendJSONResponse([
         'success' => true,
         'image' => $relativePath,

@@ -28,27 +28,59 @@ if (empty($email) || empty($password)) {
 try {
     $pdo = getDBConnection();
     
-    // Check if user exists with this email
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
-    $stmt->execute([$email]);
+    // Normalize email to lowercase for case-insensitive lookup
+    $emailLower = strtolower(trim($email));
+    
+    // Check if user exists with this email (case-insensitive)
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE LOWER(email) = ? LIMIT 1");
+    $stmt->execute([$emailLower]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Validate user exists and has password
     if (!$user) {
-        error_log("Login attempt with non-existent email: " . $email);
+        error_log("Login attempt with non-existent email: " . $emailLower);
         sendJSONResponse(['success' => false, 'error' => 'Invalid email or password'], 401);
     }
 
     // Check if user has a password set
     if (empty($user['password'])) {
-        error_log("Login attempt for user without password: " . $email);
+        error_log("Login attempt for user without password: " . $emailLower);
         sendJSONResponse(['success' => false, 'error' => 'Account setup incomplete. Please contact support.'], 401);
     }
 
     // Verify password
-    if (!password_verify($password, $user['password'])) {
-        error_log("Login attempt with incorrect password for email: " . $email);
+    $passwordValid = password_verify($password, $user['password']);
+    
+    // If password verification fails, check if password needs rehashing (for old accounts)
+    if (!$passwordValid) {
+        // Check if it's an old plain text password (for migration purposes)
+        // Only check if password hash doesn't start with $2y$ (bcrypt) or $argon2 (argon2)
+        $hashPrefix = substr($user['password'], 0, 4);
+        if ($hashPrefix !== '$2y$' && $hashPrefix !== '$2a$' && $hashPrefix !== '$2b$' && strpos($user['password'], '$argon2') === false) {
+            // Old plain text or different hash format - try direct comparison for migration
+            if ($user['password'] === $password) {
+                // Old plain text password found - rehash it
+                $newHash = password_hash($password, PASSWORD_DEFAULT);
+                $updateStmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+                $updateStmt->execute([$newHash, $user['id']]);
+                error_log("Migrated old password hash for user: " . $emailLower);
+                $passwordValid = true;
+            }
+        }
+    }
+    
+    if (!$passwordValid) {
+        error_log("Login attempt with incorrect password for email: " . $emailLower);
+        error_log("Password hash prefix: " . substr($user['password'], 0, 10));
         sendJSONResponse(['success' => false, 'error' => 'Invalid email or password'], 401);
+    }
+    
+    // Check if password needs rehashing (for security - upgrade old bcrypt hashes)
+    if (password_needs_rehash($user['password'], PASSWORD_DEFAULT)) {
+        $newHash = password_hash($password, PASSWORD_DEFAULT);
+        $updateStmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+        $updateStmt->execute([$newHash, $user['id']]);
+        error_log("Rehashed password for user: " . $emailLower);
     }
 
     // Password is correct - proceed with login
@@ -92,7 +124,7 @@ try {
         'samesite' => 'Lax'
     ]);
     
-    error_log("Successful login for user: " . $email);
+    error_log("Successful login for user: " . $user['email'] . " (ID: " . $user['id'] . ")");
     sendJSONResponse([
         'success' => true,
         'user' => $user,

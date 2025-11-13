@@ -1,0 +1,84 @@
+# Frontend .htaccess for React Router
+# This file should be placed in the root of your frontend hosting (halchash.com)
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Don't rewrite files or directories that exist
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # Rewrite everything else to index.html
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# Enable compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Browser caching - Comprehensive configuration
+<IfModule mod_expires.c>
+  ExpiresActive On
+  
+  # Images - Cache for 1 year (with versioning in filenames)
+  ExpiresByType image/jpg "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+  
+  # CSS and JavaScript - Cache for 1 month (Vite handles versioning)
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType text/javascript "access plus 1 month"
+  ExpiresByType application/x-javascript "access plus 1 month"
+  
+  # Fonts - Cache for 1 year
+  ExpiresByType font/ttf "access plus 1 year"
+  ExpiresByType font/otf "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType application/font-woff "access plus 1 year"
+  ExpiresByType application/font-woff2 "access plus 1 year"
+  
+  # HTML - Cache for 1 hour (for SPA, can be longer)
+  ExpiresByType text/html "access plus 1 hour"
+  
+  # JSON - Cache for 1 hour (API responses)
+  ExpiresByType application/json "access plus 1 hour"
+  
+  # Default - Cache for 1 week
+  ExpiresDefault "access plus 1 week"
+</IfModule>
+
+# Cache-Control headers (more granular control)
+<IfModule mod_headers.c>
+  # Images - Cache for 1 year, public cache
+  <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  
+  # Vite build assets (with hash in filename) - Cache for 1 year
+  <FilesMatch "\.(js|css)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  
+  # Fonts - Cache for 1 year, public cache
+  <FilesMatch "\.(ttf|otf|woff|woff2|eot)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  
+  # HTML - Cache for 1 hour, must-revalidate
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "public, max-age=3600, must-revalidate"
+  </FilesMatch>
+  
+  # Remove ETags as we're using Cache-Control
+  Header unset ETag
+  FileETag None
+</IfModule>
+

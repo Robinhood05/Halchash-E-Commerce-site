@@ -30,6 +30,22 @@ if (empty($totals['subtotal']) || empty($totals['total'])) {
 
 try {
     $pdo = getDBConnection();
+    
+    // Check if phone number is blocked (handle case where table doesn't exist yet)
+    try {
+        $phone = preg_replace('/[^0-9+]/', '', $customer['phone']);
+        $stmt = $pdo->prepare('SELECT id FROM blocked_users WHERE phone = ?');
+        $stmt->execute([$phone]);
+        $blocked = $stmt->fetch();
+        
+        if ($blocked) {
+            sendJSONResponse(['success' => false, 'error' => 'This phone number is blocked and cannot place orders. Please contact support.'], 403);
+        }
+    } catch (PDOException $e) {
+        // Table doesn't exist yet, skip blocking check
+        error_log('blocked_users table not found: ' . $e->getMessage());
+    }
+    
     $pdo->beginTransaction();
 
     // If user_id not provided try to find by email or create account
@@ -37,13 +53,31 @@ try {
     $temporaryPassword = null;
 
     if (!$userId) {
-        $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
-        $stmt->execute([$customer['email']]);
+        // Normalize email to lowercase
+        $emailLower = strtolower(trim($customer['email']));
+        
+        // Check if user exists by email
+        $stmt = $pdo->prepare('SELECT id FROM users WHERE LOWER(email) = ?');
+        $stmt->execute([$emailLower]);
         $existingUser = $stmt->fetch();
 
         if ($existingUser) {
             $userId = (int)$existingUser['id'];
         } else {
+            // Normalize phone: trim and set to NULL if empty
+            $phone = !empty(trim($customer['phone'])) ? trim($customer['phone']) : null;
+            
+            // Check if phone number already exists (only if phone is provided)
+            if ($phone !== null) {
+                $stmt = $pdo->prepare('SELECT id FROM users WHERE phone = ?');
+                $stmt->execute([$phone]);
+                $existingPhoneUser = $stmt->fetch();
+                if ($existingPhoneUser) {
+                    $pdo->rollBack();
+                    sendJSONResponse(['success' => false, 'error' => 'Phone number already registered. Please login or use a different phone number.']);
+                }
+            }
+            
             // Create account with random password
             $temporaryPassword = substr(bin2hex(random_bytes(8)), 0, 12);
             $hashedPassword = password_hash($temporaryPassword, PASSWORD_DEFAULT);
@@ -52,9 +86,9 @@ try {
             $stmt = $pdo->prepare('INSERT INTO users (name, email, password, phone, address, avatar) VALUES (?, ?, ?, ?, ?, ?)');
             $stmt->execute([
                 $customer['name'],
-                $customer['email'],
+                $emailLower,
                 $hashedPassword,
-                $customer['phone'],
+                $phone,
                 $customer['address'],
                 $avatar
             ]);
@@ -86,7 +120,7 @@ try {
     $orderId = (int)$pdo->lastInsertId();
 
     // Insert order items
-    $insertItem = $pdo->prepare('INSERT INTO order_items (order_id, product_id, product_name, product_price, quantity, subtotal) VALUES (?, ?, ?, ?, ?, ?)');
+    $insertItem = $pdo->prepare('INSERT INTO order_items (order_id, product_id, product_name, product_price, buying_price, quantity, subtotal) VALUES (?, ?, ?, ?, ?, ?, ?)');
 
     foreach ($items as $item) {
         $productId = isset($item['id']) ? (int)$item['id'] : null;
@@ -94,17 +128,21 @@ try {
         $productPrice = isset($item['price']) ? (float)$item['price'] : 0;
         $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 1;
         $subtotal = $productPrice * $quantity;
+        $buyingPrice = 0.00;
 
         if (empty($productName) || $productPrice <= 0) {
             $pdo->rollBack();
             sendJSONResponse(['success' => false, 'error' => 'Invalid product data provided']);
         }
 
-        // Validate product_id exists if provided
+        // Get buying_price from product if product_id exists
         if ($productId) {
-            $stmt = $pdo->prepare('SELECT id FROM products WHERE id = ?');
+            $stmt = $pdo->prepare('SELECT id, buying_price FROM products WHERE id = ?');
             $stmt->execute([$productId]);
-            if (!$stmt->fetch()) {
+            $product = $stmt->fetch();
+            if ($product) {
+                $buyingPrice = isset($product['buying_price']) ? (float)$product['buying_price'] : 0.00;
+            } else {
                 $productId = null; // Product not found, store as null
             }
         }
@@ -114,6 +152,7 @@ try {
             $productId,
             $productName,
             $productPrice,
+            $buyingPrice,
             $quantity,
             $subtotal
         ]);
@@ -144,6 +183,30 @@ try {
 
     sendJSONResponse($response);
 
+} catch (PDOException $e) {
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    error_log('Order creation error: ' . $e->getMessage());
+    
+    // Handle unique constraint violations
+    $errorInfo = $e->errorInfo();
+    $sqlState = $errorInfo[0] ?? '';
+    $mysqlErrorCode = $errorInfo[1] ?? 0;
+    $errorMsg = $e->getMessage();
+    
+    // Check for duplicate entry (SQLSTATE 23000 or MySQL error 1062)
+    if ($sqlState == '23000' || $mysqlErrorCode == 1062 || strpos($errorMsg, 'Duplicate entry') !== false) {
+        if (stripos($errorMsg, 'email') !== false || stripos($errorMsg, 'users.email') !== false) {
+            sendJSONResponse(['success' => false, 'error' => 'Email already registered. Please login or use a different email.']);
+        } elseif (stripos($errorMsg, 'phone') !== false || stripos($errorMsg, 'users.phone') !== false || stripos($errorMsg, 'unique_phone') !== false) {
+            sendJSONResponse(['success' => false, 'error' => 'Phone number already registered. Please login or use a different phone number.']);
+        } else {
+            sendJSONResponse(['success' => false, 'error' => 'Failed to place order: Duplicate entry']);
+        }
+    } else {
+        sendJSONResponse(['success' => false, 'error' => 'Failed to place order'], 500);
+    }
 } catch (Exception $e) {
     if (isset($pdo) && $pdo->inTransaction()) {
         $pdo->rollBack();

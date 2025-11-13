@@ -31,6 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'Invalid username or password';
             }
         } catch (PDOException $e) {
+            error_log("Login database error: " . $e->getMessage());
+            $error = 'Database connection failed. Please check your database configuration.';
+        } catch (Exception $e) {
+            error_log("Login error: " . $e->getMessage());
             $error = 'Login failed. Please try again.';
         }
     } else {

@@ -86,10 +86,18 @@ function getStatusLabel($status) {
     <div class="flex h-screen">
         <?php include 'sidebar.php'; ?>
         
-        <div class="flex-1 overflow-auto">
-            <div class="p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-bold">Orders Management</h2>
+        <div class="flex-1 overflow-auto lg:ml-0">
+            <!-- Mobile Top Bar -->
+            <div class="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-3">
+                <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h2 class="text-lg font-bold mt-2">Orders Management</h2>
+            </div>
+            
+            <div class="p-4 lg:p-8">
+                <div class="flex justify-between items-center mb-4 lg:mb-6">
+                    <h2 class="text-2xl lg:text-3xl font-bold hidden lg:block">Orders Management</h2>
                 </div>
 
                 <?php if ($message): ?>
@@ -152,21 +160,21 @@ function getStatusLabel($status) {
                 </div>
 
                 <!-- Filter Tabs -->
-                <div class="bg-white rounded-lg shadow mb-6">
-                    <div class="flex border-b">
-                        <a href="?filter=all" class="px-6 py-3 <?php echo $filter === 'all' ? 'border-b-2 border-blue-500 text-blue-600 font-semibold' : 'text-gray-600 hover:text-gray-800'; ?>">
-                            All Orders (<?php echo $stats['total_orders']; ?>)
+                <div class="bg-white rounded-lg shadow mb-4 lg:mb-6">
+                    <div class="flex border-b overflow-x-auto">
+                        <a href="?filter=all" class="px-3 lg:px-6 py-2 lg:py-3 whitespace-nowrap text-sm lg:text-base <?php echo $filter === 'all' ? 'border-b-2 border-blue-500 text-blue-600 font-semibold' : 'text-gray-600 hover:text-gray-800'; ?>">
+                            All (<?php echo $stats['total_orders']; ?>)
                         </a>
-                        <a href="?filter=pending" class="px-6 py-3 <?php echo $filter === 'pending' ? 'border-b-2 border-yellow-500 text-yellow-600 font-semibold' : 'text-gray-600 hover:text-gray-800'; ?>">
+                        <a href="?filter=pending" class="px-3 lg:px-6 py-2 lg:py-3 whitespace-nowrap text-sm lg:text-base <?php echo $filter === 'pending' ? 'border-b-2 border-yellow-500 text-yellow-600 font-semibold' : 'text-gray-600 hover:text-gray-800'; ?>">
                             Pending (<?php echo $stats['pending_orders']; ?>)
                         </a>
-                        <a href="?filter=processing" class="px-6 py-3 <?php echo $filter === 'processing' ? 'border-b-2 border-blue-500 text-blue-600 font-semibold' : 'text-gray-600 hover:text-gray-800'; ?>">
+                        <a href="?filter=processing" class="px-3 lg:px-6 py-2 lg:py-3 whitespace-nowrap text-sm lg:text-base <?php echo $filter === 'processing' ? 'border-b-2 border-blue-500 text-blue-600 font-semibold' : 'text-gray-600 hover:text-gray-800'; ?>">
                             Confirmed (<?php echo $stats['processing_orders']; ?>)
                         </a>
-                        <a href="?filter=delivered" class="px-6 py-3 <?php echo $filter === 'delivered' ? 'border-b-2 border-green-500 text-green-600 font-semibold' : 'text-gray-600 hover:text-gray-800'; ?>">
+                        <a href="?filter=delivered" class="px-3 lg:px-6 py-2 lg:py-3 whitespace-nowrap text-sm lg:text-base <?php echo $filter === 'delivered' ? 'border-b-2 border-green-500 text-green-600 font-semibold' : 'text-gray-600 hover:text-gray-800'; ?>">
                             Delivered (<?php echo $stats['delivered_orders']; ?>)
                         </a>
-                        <a href="?filter=cancelled" class="px-6 py-3 <?php echo $filter === 'cancelled' ? 'border-b-2 border-red-500 text-red-600 font-semibold' : 'text-gray-600 hover:text-gray-800'; ?>">
+                        <a href="?filter=cancelled" class="px-3 lg:px-6 py-2 lg:py-3 whitespace-nowrap text-sm lg:text-base <?php echo $filter === 'cancelled' ? 'border-b-2 border-red-500 text-red-600 font-semibold' : 'text-gray-600 hover:text-gray-800'; ?>">
                             Cancelled (<?php echo $stats['cancelled_orders']; ?>)
                         </a>
                     </div>
@@ -221,8 +229,11 @@ function getStatusLabel($status) {
                                                 <button onclick="viewOrder(<?php echo $order['id']; ?>)" class="text-blue-600 hover:text-blue-900 mr-3">
                                                     <i class="fas fa-eye"></i> View
                                                 </button>
-                                                <button onclick="changeStatus(<?php echo $order['id']; ?>, '<?php echo $order['status']; ?>')" class="text-green-600 hover:text-green-900">
+                                                <button onclick="changeStatus(<?php echo $order['id']; ?>, '<?php echo $order['status']; ?>')" class="text-green-600 hover:text-green-900 mr-3">
                                                     <i class="fas fa-edit"></i> Change Status
+                                                </button>
+                                                <button onclick="deleteOrder(<?php echo $order['id']; ?>, '<?php echo htmlspecialchars($order['order_number']); ?>')" class="text-red-600 hover:text-red-900">
+                                                    <i class="fas fa-trash"></i> Delete
                                                 </button>
                                             </td>
                                         </tr>
@@ -504,6 +515,31 @@ function getStatusLabel($status) {
                 }
             }
         });
+
+        function deleteOrder(orderId, orderNumber) {
+            if (!confirm(`Are you absolutely sure you want to permanently delete order #${orderNumber}? This action cannot be undone and the order will be completely removed from the database.`)) {
+                return;
+            }
+
+            fetch('../api/admin/orders.php', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: orderId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '?message=' + encodeURIComponent('Order deleted permanently') + '&type=success';
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            });
+        }
     </script>
 </body>
 </html>

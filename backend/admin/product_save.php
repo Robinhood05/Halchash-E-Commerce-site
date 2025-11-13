@@ -19,6 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = sanitizeInput($_POST['name']);
     $description = sanitizeInput($_POST['description']);
     $price = floatval($_POST['price']);
+    $buying_price = !empty($_POST['buying_price']) ? floatval($_POST['buying_price']) : 0.00;
     $discount_price = !empty($_POST['discount_price']) ? floatval($_POST['discount_price']) : null;
     $discount = intval($_POST['discount'] ?? 0);
     $stock_quantity = intval($_POST['stock_quantity'] ?? 0);
@@ -45,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $filepath = $uploadDir . $filename;
         
         if (move_uploaded_file($file['tmp_name'], $filepath)) {
-            $image = '/backend/uploads/products/' . $filename;
+            $image = UPLOAD_BASE_PATH . '/products/' . $filename;
         }
     }
     
@@ -61,12 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $stmt = $pdo->prepare("
             INSERT INTO products (
-                category_id, name, slug, description, price, discount_price, discount,
+                category_id, name, slug, description, price, buying_price, discount_price, discount,
                 image, images, features, in_stock, stock_quantity, badge, is_active
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '[]', ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '[]', ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
-            $category_id, $name, $slug, $description, $price, $discount_price, $discount,
+            $category_id, $name, $slug, $description, $price, $buying_price, $discount_price, $discount,
             $image, $features, $in_stock, $stock_quantity, $badge, $is_active
         ]);
         
@@ -81,12 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $stmt = $pdo->prepare("
             UPDATE products 
-            SET category_id = ?, name = ?, slug = ?, description = ?, price = ?, discount_price = ?, discount = ?,
+            SET category_id = ?, name = ?, slug = ?, description = ?, price = ?, buying_price = ?, discount_price = ?, discount = ?,
                 image = ?, features = ?, in_stock = ?, stock_quantity = ?, badge = ?, is_active = ?
             WHERE id = ?
         ");
         $stmt->execute([
-            $category_id, $name, $slug, $description, $price, $discount_price, $discount,
+            $category_id, $name, $slug, $description, $price, $buying_price, $discount_price, $discount,
             $image, $features, $in_stock, $stock_quantity, $badge, $is_active, $id
         ]);
         

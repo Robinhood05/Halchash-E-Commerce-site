@@ -103,8 +103,16 @@ if (isset($_GET['edit'])) {
     <div class="flex h-screen">
         <?php include 'sidebar.php'; ?>
         
-        <div class="flex-1 overflow-auto">
-            <div class="p-8">
+        <div class="flex-1 overflow-auto lg:ml-0">
+            <!-- Mobile Top Bar -->
+            <div class="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-3">
+                <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h2 class="text-lg font-bold mt-2">Categories</h2>
+            </div>
+            
+            <div class="p-4 lg:p-8">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-3xl font-bold">Categories</h2>
                     <button onclick="document.getElementById('categoryModal').classList.remove('hidden')" class="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700">

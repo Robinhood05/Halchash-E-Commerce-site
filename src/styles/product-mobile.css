@@ -1,0 +1,69 @@
+/* Mobile-First Product Styles */
+
+/* Ensure images are fluid and don't exceed container */
+.product-image {
+  max-width: 100%;
+  height: auto;
+  width: 100%;
+  object-fit: cover;
+}
+
+/* Consistent 1:1 aspect ratio for product images */
+.product-image-container {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Mobile-optimized image sizes */
+@media (max-width: 640px) {
+  .product-image-container {
+    max-width: 100%;
+  }
+  
+  .product-image {
+    max-height: 300px;
+  }
+}
+
+/* Tablet sizes */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .product-image {
+    max-height: 350px;
+  }
+}
+
+/* Desktop sizes */
+@media (min-width: 1025px) {
+  .product-image {
+    max-height: 400px;
+  }
+}
+
+/* Touch-friendly buttons - minimum 48px */
+@media (max-width: 768px) {
+  button, .btn, [role="button"] {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+
+/* Optimize product card spacing on mobile */
+@media (max-width: 640px) {
+  .product-card {
+    margin-bottom: 1rem;
+  }
+}
+
+/* Ensure text is readable on mobile */
+@media (max-width: 640px) {
+  .product-name {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .product-price {
+    font-size: 1rem;
+  }
+}
+

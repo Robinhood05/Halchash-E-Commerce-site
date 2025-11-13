@@ -765,6 +765,21 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Hide scrollbar but keep functionality - Mobile Category Bar */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Smooth touch scrolling for iOS */
+.-webkit-overflow-scrolling-touch {
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Selection Styles */
 ::selection {
   background: var(--bengali-primary);

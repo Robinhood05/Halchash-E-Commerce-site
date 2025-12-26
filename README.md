@@ -23,9 +23,9 @@ Or use phpMyAdmin to import `database.sql`
 
 Update database credentials in `config/database.php` if needed:
 - DB_HOST: localhost
-- DB_USER: robin
-- DB_PASS: 1234
-- DB_NAME: halchash_db
+- DB_USER: ....
+- DB_PASS: ...
+- DB_NAME: 
 
 ### 3. File Permissions
 
@@ -36,8 +36,8 @@ chmod 755 uploads/products/
 
 ### 4. Default Admin Credentials
 
-- Username: `admin`
-- Password: `admin123`
+- Username: ``
+- Password: ``
 
 **Important:** Change the default password after first login!
 
